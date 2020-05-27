@@ -59,6 +59,3 @@ class Song
   end
 
 end
-
-
-
