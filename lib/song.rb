@@ -1,5 +1,6 @@
 require_relative "../config/environment.rb"
 require 'active_support/inflector'
+require "pry"
 
 class Song
 
@@ -26,6 +27,9 @@ class Song
   end
 
   def initialize(options={})
+    # set default for song, would pass to super? not sure
+    options[:album] ||= "default"
+
     options.each do |property, value|
       self.send("#{property}=", value)
     end
@@ -58,7 +62,29 @@ class Song
     DB[:conn].execute(sql)
   end
 
+  def self.create(name)
+    item = new(name: name)
+    item.save
+    item
+  end
+
+  def self.find_or_create_by_name(name)
+    item = find_by_name(name)
+    # binding.pry
+
+    item.empty? ? create(name: name) : new_from_db(item[0])
+  end
+
+  def self.all
+    sql = "SELECT * FROM #{self.table_name}"
+    DB[:conn].execute(sql).map do |item|
+      new_item = item.reject{ |key, _value| key.is_a? Integer }
+      new_from_db(new_item)
+    end
+  end
+
+  def self.new_from_db(obj)
+    new(obj)
+  end
+
 end
-
-
-
